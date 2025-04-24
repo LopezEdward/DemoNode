@@ -6,12 +6,11 @@ let pool;
 const MAX_ITEMS = 50;
 
 const config = {
-    user: "root",
-    password: "ttGERdETXPZLermDxwPilPbiFQNvZGIW",
-    host: "ballast.proxy.rlwy.net",
-    port: 16927,
-    database: "railway",
-    max: 10
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME
 };
 
 async function test_db_conn () {

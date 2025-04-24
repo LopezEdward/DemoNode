@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node --watch crud-vendedores/app.js",
+    "dev": "node --watch --env-file=./../.develop.env crud-vendedores/app.js",
     "start": "node crud-vendedores/app.js"
   },
   "keywords": [],
@@ -14,9 +14,9 @@
     "body-parser": "^2.2.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
-    "mysql2": "^3.14.0"
+    "mysql2": "^3.14.0",
+    "react": "^19.1.0"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CarlTheBoss/NODEDEMO.git"
@@ -25,5 +25,6 @@
     "url": "https://github.com/CarlTheBoss/NODEDEMO/issues"
   },
   "homepage": "https://github.com/CarlTheBoss/NODEDEMO#readme",
-  "description": ""
+  "description": "",
+  "packageManager": "pnpm@10.6.5+sha512.cdf928fca20832cd59ec53826492b7dc25dc524d4370b6b4adbf65803d32efaa6c1c88147c0ae4e8d579a6c9eec715757b50d4fa35eea179d868eada4ed043af"
 }
