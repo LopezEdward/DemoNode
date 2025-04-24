@@ -7,42 +7,35 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-    <div class="container mt-5">
+    <div class="container mt-5" id="parentNode">
         <h1 class="mb-4">Vendedores</h1>
         
         <!-- Formulario de Búsqueda -->
-        <form action="/vendedores" method="GET" class="mb-4">
+        <form id="get_form" action="/vendedores/data" method="GET" class="mb-4">
             <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <input type="text" class="form-control" name="busqueda" 
-                           placeholder="Buscar..." 
-                           value="<%= locals.busqueda || '' %>">
-                </div>
-                <div class="col-auto">
-                    <select name="tipo" class="form-select">
-                        <option value="todos" <%= locals.tipo === 'todos' ? 'selected' : '' %>>Todos</option>
-                        <option value="id" <%= locals.tipo === 'id' ? 'selected' : '' %>>ID</option>
-                        <option value="nombre" <%= locals.tipo === 'nombre' ? 'selected' : '' %>>Nombre</option>
-                        <option value="apellido" <%= locals.tipo === 'apellido' ? 'selected' : '' %>>Apellido</option>
-                    </select>
+                <div style="display: flex; max-width: 40%;">
+                    <input style="margin-right: 0.5em;" class="form-control" type="number" name="from" id="from" placeholder="Ingresar el número inicial">
+                    <input style="margin-left: 0.5em;" class="form-control" type="number"  name="limit" id="limit" placeholder="Ingresar la cantidad a recuperar">
                 </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-primary">Buscar</button>
                 </div>
                 <div class="col-auto">
-                    <a href="/vendedores/nuevo" class="btn btn-success">Nuevo Vendedor</a>
+                    <a href="/add" class="btn btn-success">Nuevo Vendedor</a>
                 </div>
             </div>
         </form>
-
-        <!-- Mostrar Error si existe -->
+        <div class="alert alert-info" role="alert" id="showeds">
+            No se encontraron vendedores
+        </div>
+        <!-- Mostrar Error si existe 
         <% if (locals.error) { %>
             <div class="alert alert-danger" role="alert">
                 <%= error %>
             </div>
         <% } %>
 
-        <!-- Tabla de Vendedores -->
+         Tabla de Vendedores
         <% if (locals.vendedores && vendedores.length > 0) { %>
             <table class="table table-striped">
                 <thead>
@@ -73,11 +66,97 @@
             <div class="alert alert-info" role="alert">
                 No se encontraron vendedores
             </div>
-        <% } %>
+        <% } %>-->
     </div>
 
     <script>
-    async function confirmarEliminacion(id) {
+    let TB_RENDER = false;
+    const form = document.getElementById("get_form");
+    const md = document.getElementById("showeds");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const parentNode = await document.getElementById("parentNode");
+
+        let min = await document.getElementById("from").value;
+        let items = await document.getElementById("limit").value;
+
+        let consult = `/vendedores/data?from=${min}&limit=${items}`; 
+
+        const data = await fetch(consult);
+
+        create_table(await data.json(), parentNode);
+    });
+
+    function create_table (data, parentNode) {
+        if (TB_RENDER) {
+            md.style.display = "block";
+            document.getElementById("tb-render").remove();
+            TB_RENDER = false;
+        }
+
+        let tb = document.createElement("table");
+        tb.setAttribute("class", "table table-striped");
+        tb.setAttribute("id", "tb-render")
+
+        create_table_header(tb, ["id", "nombres", "apellidos", "celular", "distrito", "acciones"]);
+
+        for (let item of data) {
+            let row = document.createElement("tr");
+
+            let idCell = document.createElement("td");
+            idCell.textContent = item.id_ven;
+
+            let nameCell = document.createElement("td");
+            nameCell.textContent = item.nom_ven;
+
+            let apeCell = document.createElement("td");
+            apeCell.textContent = item.ape_ven;
+
+            let celCell = document.createElement("td");
+            celCell.textContent = item.cel_ven;
+            
+            let disCell = document.createElement("td");
+            disCell.textContent = item.nom_dis;
+
+            let delCell = document.createElement("td");
+            let delButton = document.createElement("button");
+            delButton.addEventListener("click", confirmarEliminacion);
+            delButton.textContent = "Eliminar";
+            
+            delCell.appendChild(delButton);
+
+            row.appendChild(idCell);
+            row.appendChild(nameCell);
+            row.appendChild(apeCell);
+            row.appendChild(celCell);
+            row.appendChild(disCell);
+            row.appendChild(delCell);
+
+            tb.appendChild(row);
+        }
+
+        parentNode.appendChild(tb);
+        md.style.display = "none";
+        TB_RENDER = true;
+    }
+    
+    function create_table_header (tb, strs) {
+        let th = document.createElement("thead");
+        
+        for (let item of strs) {
+            let tc = document.createElement("td");
+
+            tc.textContent = item;
+
+            th.appendChild(tc);
+        }
+
+        tb.appendChild(th);
+    }
+
+    async function confirmarEliminacion(event) {
         const result = await Swal.fire({
             title: '¿Estás seguro?',
             text: 'Esta acción no se puede deshacer',
@@ -91,7 +170,11 @@
 
         if (result.isConfirmed) {
             try {
-                const response = await fetch(`/vendedores/eliminar/${id}`);
+                const id = event.target.parentNode.parentNode.children[0].textContent;
+
+                const response = await fetch("/vendedores/delete/" + id, {
+                    method: "DELETE"
+                });
                 const data = await response.json();
 
                 if (data.success) {
@@ -100,7 +183,8 @@
                         text: data.message,
                         icon: 'success'
                     });
-                    window.location.reload();
+                    //window.location.reload();
+                    event.target.parentNode.parentNode.remove();
                 } else {
                     throw new Error(data.message || 'Error al eliminar vendedor');
                 }

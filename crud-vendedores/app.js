@@ -2,17 +2,23 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
 
+const vendedoresRoutes = require("./routes/vendedores");
+const pagesRouter = require("./routes/pages.js");
+const districtRouter = require("./routes/distritos.js");
+
 const app = express();
-const port = 3000;
+const port = 8080;
 
 // Middleware
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // Rutas
-const vendedoresRoutes = require("./routes/vendedores");
+
 app.use("/vendedores", vendedoresRoutes);
+app.use("/", pagesRouter);
+app.use("/distritos", districtRouter);
 
 // Ruta principal
 app.get("/", (req, res) => {

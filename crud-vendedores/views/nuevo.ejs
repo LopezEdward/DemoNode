@@ -41,31 +41,78 @@
             id="cel_ven"
             name="cel_ven"
             pattern="[0-9]{9}"
-            required
           />
           <small class="form-text text-muted">Debe tener 9 dígitos</small>
         </div>
+        <div class="mb-3">
+          <label for="district" class="form-label">Distrito</label>
+          <select name="district" id="district" class="form-control">
+            <option value="NULL">--- CLICK HERE ---</option>
+          </select>
+        </div>
         <button type="submit" class="btn btn-primary">Guardar Vendedor</button>
-        <a href="/vendedores" class="btn btn-secondary">Cancelar</a>
+        <a href="/home" class="btn btn-secondary">Cancelar</a>
       </form>
     </div>
 
     <script>
+      document.addEventListener("DOMContentLoaded", async (e) => {
+          const route = "/distritos/data";
+
+          const data = await fetch(route);
+
+          add_options(await data.json());
+      });
+
+      function add_options (data) {
+          const elem = document.getElementById("district");
+
+          for (let item of data) {
+              let option = document.createElement("option");
+              option.setAttribute("name", "district_id");
+              option.setAttribute("value", item.id_dis);
+              option.textContent = item.nom_dis;
+
+              elem.appendChild(option);
+          }
+      }
+
       async function submitForm(event) {
         event.preventDefault();
+        let response;
+        let result;
+
         try {
-          const formData = new FormData(event.target);
-          const response = await fetch("/vendedores/nuevo", {
+          const name = document.getElementById("nom_ven").value;
+          const surname = document.getElementById("apel_ven").value;
+          const cel = document.getElementById("cel_ven").value;
+          const districtId = document.getElementById("district").selectedOptions[0].value;
+          
+          const obj = {
+              name: name,
+              surname: surname,
+              celPhone: cel,
+              districtId: districtId
+          };
+
+          response = await fetch("/vendedores/add", {
             method: "POST",
             headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
+              "Content-Type": "application/json",
             },
-            body: new URLSearchParams(formData),
+            body: JSON.stringify(obj),
           });
 
-          const result = await response.json();
+          result = await response.json();
 
-          if (result.success) {
+          console.log("CREATED!")
+
+          console.log(result);
+
+          if (result) {
+            window.location.href = "/home";
+          }
+          /*if (result.success) {
             await Swal.fire({
               title: "¡Éxito!",
               text: result.message,
@@ -74,13 +121,15 @@
             window.location.href = "/vendedores";
           } else {
             throw new Error(result.message || "Error al crear vendedor");
-          }
+          }*/
         } catch (error) {
-          Swal.fire({
+          console.log("ERROR!");
+          console.log(result);
+          /*Swal.fire({
             title: "Error",
             text: error.message,
             icon: "error",
-          });
+          });*/
         }
       }
     </script>
